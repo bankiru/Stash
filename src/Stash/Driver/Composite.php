@@ -25,7 +25,6 @@ use Stash\Interfaces\DriverInterface;
  */
 class Composite implements DriverInterface
 {
-
     /**
      * The drivers this driver encapsulates.
      *
@@ -79,6 +78,8 @@ class Composite implements DriverInterface
         foreach ($this->drivers as $driver) {
             if ($return = $driver->getData($key)) {
                 $failedDrivers = array_reverse($failedDrivers);
+                /* @var DriverInterface[] $failedDrivers */
+
                 foreach ($failedDrivers as $failedDriver) {
                     $failedDriver->storeData($key, $return['data'], $return['expiration']);
                 }
@@ -134,6 +135,8 @@ class Composite implements DriverInterface
     protected function actOnAll($action, $args = array())
     {
         $drivers = array_reverse($this->drivers);
+        /* @var DriverInterface[] $drivers */
+
         $return = true;
         $results = false;
         foreach ($drivers as $driver) {

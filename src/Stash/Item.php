@@ -262,14 +262,13 @@ class Item implements ItemInterface
      */
     public function isMiss()
     {
-        if (!isset($this->isHit))
-            $result = $this->get();
-
         if ($this->isDisabled()) {
             return true;
         }
 
-        return (!$this->isHit) || ($result === null);
+        $result = $this->get();
+
+        return !$this->isHit || $result === null;
     }
 
     /**
@@ -277,7 +276,7 @@ class Item implements ItemInterface
      */
     public function lock($ttl = null)
     {
-       if ($this->isDisabled()) {
+        if ($this->isDisabled()) {
             return true;
         }
 
@@ -402,9 +401,9 @@ class Item implements ItemInterface
      */
     protected function logException($message, $exception)
     {
-        if(!isset($this->logger))
-
+        if (!isset($this->logger)) {
             return false;
+        }
 
         $this->logger->critical($message,
                                 array('exception' => $exception,

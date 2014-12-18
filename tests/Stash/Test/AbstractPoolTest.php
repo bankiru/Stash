@@ -67,7 +67,6 @@ class AbstractPoolTest extends \PHPUnit_Framework_TestCase
         $item = $pool->getItem(array('test', 'item'));
 
         $this->assertAttributeEquals('TestNamespace', 'namespace', $item, 'Pool sets Item namespace.');
-
     }
 
     /**

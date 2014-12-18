@@ -29,7 +29,7 @@ class Redis implements DriverInterface
      *
      * @var array
      */
-    protected $defaultOptions = array ();
+    protected $defaultOptions = array();
 
     /**
      * The Redis drivers.
@@ -85,12 +85,12 @@ class Redis implements DriverInterface
      */
     public function setOptions(array $options = array())
     {
-        if(!self::isAvailable())
+        if (!self::isAvailable()) {
             throw new \RuntimeException('Unable to load Redis driver without PhpRedis extension.');
+        }
 
         // Normalize Server Options
         if (isset($options['servers'])) {
-
             $unprocessedServers = (is_array($options['servers']))
                 ? $options['servers']
                 : array($options['servers']);
@@ -98,7 +98,6 @@ class Redis implements DriverInterface
 
             $servers = array();
             foreach ($unprocessedServers as $server) {
-
                 $ttl = '.1';
                 if (isset($server['ttl'])) {
                     $ttl = $server['ttl'];
@@ -109,7 +108,6 @@ class Redis implements DriverInterface
                 if (isset($server['socket'])) {
                     $servers[] = array('socket' => $server['socket'], 'ttl' => $ttl);
                 } else {
-
                     $host = '127.0.0.1';
                     if (isset($server['server'])) {
                         $host = $server['server'];
@@ -127,7 +125,6 @@ class Redis implements DriverInterface
                     $servers[] = array('server' => $host, 'port' => $port, 'ttl' => $ttl);
                 }
             }
-
         } else {
             $servers = array(array('server' => '127.0.0.1', 'port' => '6379', 'ttl' => 0.1));
         }
@@ -152,13 +149,12 @@ class Redis implements DriverInterface
             }
 
             // auth - just password
-            if(isset($options['password']))
+            if (isset($options['password'])) {
                 $redis->auth($options['password']);
+            }
 
             $this->redis = $redis;
-
         } else {
-
             $redisArrayOptions = array();
             foreach ($this->redisArrayOptionNames as $optionName) {
                 if (array_key_exists($optionName, $options)) {
@@ -169,8 +165,9 @@ class Redis implements DriverInterface
             $serverArray = array();
             foreach ($servers as $server) {
                 $serverString = $server['server'];
-                if(isset($server['port']))
+                if (isset($server['port'])) {
                     $serverString .= ':' . $server['port'];
+                }
 
                 $serverArray[] = $serverString;
             }
@@ -179,8 +176,9 @@ class Redis implements DriverInterface
         }
 
         // select database
-        if(isset($options['database']))
+        if (isset($options['database'])) {
             $redis->select($options['database']);
+        }
 
         $this->redis = $redis;
     }
@@ -193,7 +191,14 @@ class Redis implements DriverInterface
     public function __destruct()
     {
         if ($this->redis instanceof \Redis) {
-            $this->redis->close();
+            try {
+                $this->redis->close();
+            } catch (\RedisException $e) {
+                /*
+                 * \Redis::close will throw a \RedisException("Redis server went away") exception if
+                 * we haven't previously been able to connect to Redis or the connection has severed.
+                 */
+            }
         }
     }
 
@@ -212,7 +217,7 @@ class Redis implements DriverInterface
     {
         $store = serialize(array('data' => $data, 'expiration' => $expiration));
         if (is_null($expiration)) {
-            return $this->redis->setex($this->makeKeyString($key), $store);
+            return $this->redis->set($this->makeKeyString($key), $store);
         } else {
             $ttl = $expiration - time();
 
@@ -222,7 +227,7 @@ class Redis implements DriverInterface
                 return true;
             }
 
-            return $this->redis->set($this->makeKeyString($key), $store, $ttl);
+            return $this->redis->setex($this->makeKeyString($key), $ttl, $store);
         }
     }
 
@@ -302,5 +307,4 @@ class Redis implements DriverInterface
 
         return $path ? $pathKey : md5($keyString);
     }
-
 }
