@@ -263,13 +263,13 @@ class Item implements ItemInterface
     public function isMiss()
     {
         if (!isset($this->isHit))
-            $this->get();
+            $result = $this->get();
 
         if ($this->isDisabled()) {
             return true;
         }
 
-        return !$this->isHit;
+        return (!$this->isHit) || ($result === null);
     }
 
     /**
